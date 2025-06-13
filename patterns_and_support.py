@@ -35,7 +35,7 @@ def add_all_features(df, support_threshold=0.05):
         support_log[name] = support
         print(f"Feature '{name}' support: {support:.2%}")
         if support >= support_threshold:
-            df[name] = series
+            df[name] = series.fillna(False)
         else:
             print(f"Dropping '{name}' due to low support: {support:.2%}")
     return df, support_log
@@ -45,6 +45,10 @@ df, support_log = add_all_features(df)
 
 print("Final DataFrame with patterns and support:")
 print(df.head())
+
+# Convert boolean columns to 0/1 for better compatibility
+bool_cols = df.select_dtypes(include='bool').columns
+df[bool_cols] = df[bool_cols].astype(int)
 
 # Save the modified DataFrame to a new CSV file
 df.to_csv(DST)

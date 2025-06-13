@@ -7,11 +7,6 @@ import matplotlib.pyplot as plt
 
 
 
-# We need to apply FFT to the data before downsampling with the time window of 1 second.
-
-SRC = Path("all_modes_1s_mean.csv")  # Source CSV file with resampled data
-DST = Path("all_modes_with_patterns.csv")  # Destination CSV file to save the results
-
 def extract_fft_features(df, column, window_size=100, sampling_rate=100):
     """
     Apply FFT on a rolling window and extract dominant frequency and its magnitude.
@@ -23,7 +18,7 @@ def extract_fft_features(df, column, window_size=100, sampling_rate=100):
         sampling_rate: How many samples per second (Hz)
     
     Returns:
-        df with new columns: 'fft_dom_freq', 'fft_dom_magnitude'
+        df with new columns: 'fft_dom_freq_{column}', 'fft_dom_magnitude_{column}'
     """
     dom_freqs = []
     dom_mags = []
@@ -37,8 +32,6 @@ def extract_fft_features(df, column, window_size=100, sampling_rate=100):
             continue
 
         window = signal[i - window_size:i]
-
-        # Optional: apply a windowing function (Hamming, Hann, etc.)
         windowed_signal = window * get_window("hann", window_size)
 
         # Compute FFT
@@ -58,26 +51,7 @@ def extract_fft_features(df, column, window_size=100, sampling_rate=100):
             dom_freqs.append(pos_freqs[dom_idx])
             dom_mags.append(pos_mags[dom_idx])
 
-    df['fft_dom_freq'] = dom_freqs
-    df['fft_dom_magnitude'] = dom_mags
+    df[f'fft_dom_freq_{column}'] = dom_freqs
+    df[f'fft_dom_magnitude_{column}'] = dom_mags
 
     return df
-
-columns_to_use = ['speed','acceleration', 'gyro']  
-for col in columns_to_use:
-    df = extract_fft_features(df, column=col, window_size=100, sampling_rate=100)
-
-    # Plotting the results to visualize the FFT features
-    def plot_fft_features(df, column):
-        plt.figure(figsize=(12, 6))
-        plt.plot(df.index, df[column], label=column)
-        plt.plot(df.index, df['fft_dom_freq'], label='FFT Dominant Frequency', linestyle='--')
-        plt.plot(df.index, df['fft_dom_magnitude'], label='FFT Dominant Magnitude', linestyle=':')
-        plt.title(f'FFT Features for {column}')
-        plt.xlabel('Timestamp')
-        plt.ylabel('Value')
-        plt.legend()
-        plt.show()
-
-# Save final results
-df.to_csv(DST)
