@@ -1,9 +1,9 @@
-import pandas as pd
 import numpy as np
 from pathlib import Path
+import pandas as pd
 
-SRC = Path("all_modes_1s_mean.csv")  # Source CSV file with resampled data
-DST = Path("all_modes_with_patterns.csv")  # Destination CSV file to save the results
+SRC = Path("data/final_data.csv")  
+DST = Path("data/final_data_with_patterns.csv")  
 
 # Read the CSV file into a DataFrame
 df = pd.read_csv(SRC, parse_dates=['timestamp'], index_col='timestamp')
@@ -33,6 +33,7 @@ def add_all_features(df, support_threshold=0.05):
         series = func(df)
         support = calculate_support(series)
         support_log[name] = support
+        print(f"Feature '{name}' support: {support:.2%}")
         if support >= support_threshold:
             df[name] = series
         else:
@@ -41,4 +42,11 @@ def add_all_features(df, support_threshold=0.05):
 
 
 df, support_log = add_all_features(df)
+
+print("Final DataFrame with patterns and support:")
+print(df.head())
+
+# Save the modified DataFrame to a new CSV file
+df.to_csv(DST)
+print(f"Data saved to {DST}")
 
