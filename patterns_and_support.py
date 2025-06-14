@@ -8,18 +8,24 @@ DST = Path("data/final_data_with_patterns.csv")
 # Read the CSV file into a DataFrame
 df = pd.read_csv(SRC, parse_dates=['timestamp'], index_col='timestamp')
 
+# Gyroscope data processing
+df['gyro'] = np.sqrt(df['X (rad/s)']**2 + df['Y (rad/s)']**2 + df['Z (rad/s)']**2)
+# Remove original gyroscope columns
+df.drop(columns=['X (rad/s)', 'Y (rad/s)', 'Z (rad/s)'], inplace=True)
+
+# Dropping GPS data
+df.drop(columns=['X (m/s^2)', 'Y (m/s^2)', 'Z (m/s^2)'], inplace=True)
+
 # Patterns for detecting different modes of transportation based on sensor data
 PATTERN_FUNCTIONS = {
     # Patterns based on speed and acceleration
-    'sustained_low_speed': lambda df: (df['speed'] < 0.5).rolling(window=10).sum() == 10,
-    'sustained_medium_speed': lambda df: df['speed'].between(1.5, 3.0).rolling(window=10).sum() == 10,
-    'sustained_high_speed': lambda df: (df['speed'] > 3.0).rolling(window=10).sum() == 10,
-    # Patterns based on GPS signal
-    'consistent_gps_signal': lambda df: df['gps_signal'].notna().rolling(window=10).sum() == 10,
-    'gps_signal_loss': lambda df: df['gps_signal'].isna().rolling(window=5).sum() == 5,
+    'sustained_low_speed': lambda df: (df['Velocity (m/s)'] < 0.5).rolling(window=10).sum() == 10,
+    'sustained_medium_speed': lambda df: df['Velocity (m/s)'].between(1.5, 3.0).rolling(window=10).sum() == 10,
+    'sustained_high_speed': lambda df: (df['Velocity (m/s)'] > 3.0).rolling(window=10).sum() == 10,
+    
     # Patterns based on gyroscope data
-    'low_velocity_high_gyro': lambda df: ((df['speed'] < 0.5) & (df['gyro'].abs() > 1.0)).rolling(window=10).sum() == 10,
-    'high_velocity_low_gyro': lambda df: ((df['speed'] > 3.0) & (df['gyro'].abs() < 0.5)).rolling(window=10).sum() == 10,
+    'low_velocity_high_gyro': lambda df: ((df['Velocity (m/s)'] < 0.5) & (df['gyro'].abs() > 1.0)).rolling(window=10).sum() == 10,
+    'high_velocity_low_gyro': lambda df: ((df['Velocity (m/s)'] > 3.0) & (df['gyro'].abs() < 0.5)).rolling(window=10).sum() == 10,
 }
 
 def calculate_support(series):
