@@ -14,7 +14,7 @@ df['gyro'] = np.sqrt(df['X (rad/s)']**2 + df['Y (rad/s)']**2 + df['Z (rad/s)']**
 df.drop(columns=['X (rad/s)', 'Y (rad/s)', 'Z (rad/s)'], inplace=True)
 
 # Dropping GPS data
-df.drop(columns=['X (m/s^2)', 'Y (m/s^2)', 'Z (m/s^2)'], inplace=True)
+df.drop(columns=["Latitude (°)","Longitude (°)","Height (m)","Horizontal Accuracy (m)","Vertical Accuracy (°)"], inplace=True)
 
 # Patterns for detecting different modes of transportation based on sensor data
 PATTERN_FUNCTIONS = {
